@@ -312,15 +312,7 @@
     }
 
     .draw-path {
-       stroke-dasharray: 1200;
-       stroke-dashoffset: 1200;
-       animation: drawLineArt 6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    @keyframes drawLineArt {
-       0% { stroke-dashoffset: 1200; opacity: 0.2; }
-       20% { opacity: 1; }
-       100% { stroke-dashoffset: 0; opacity: 1; }
+       opacity: 0;
     }
 
     header h1 {
@@ -1372,62 +1364,590 @@
         observer.observe(el);
       });
 
-      // Interactive Charcoal Sketch Canvas
+      // Interactive Sketch Drawing Canvas
       const canvas = document.getElementById("sketch-canvas");
       const header = document.querySelector("header");
-      if (canvas && header) {
+      const heroArt = document.querySelector(".hero-art");
+      const lineArtSvg = document.querySelector(".hero-line-art");
+      
+      if (canvas && header && heroArt && lineArtSvg) {
         const ctx = canvas.getContext("2d");
-        let points = [];
-        const maxPoints = 60;
-
+        
+        let scaleX = 1;
+        let scaleY = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        
+        // Hide the original static svg paths so they don't double-draw
+        const svgPaths = lineArtSvg.querySelectorAll("path");
+        svgPaths.forEach(path => {
+          path.style.opacity = "0";
+        });
+        
         function resizeCanvas() {
           canvas.width = window.innerWidth;
           canvas.height = window.innerHeight;
+          updateMapping();
         }
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
+        
+        function updateMapping() {
+          const artRect = heroArt.getBoundingClientRect();
+          const canvasRect = canvas.getBoundingClientRect();
+          
+          const targetX = artRect.left - canvasRect.left;
+          const targetY = artRect.top - canvasRect.top;
+          const targetW = artRect.width;
+          const targetH = artRect.height;
+          
+          const viewBoxSize = 500;
+          const scale = Math.min(targetW / viewBoxSize, targetH / viewBoxSize);
+          
+          scaleX = scale;
+          scaleY = scale;
+          offsetX = targetX + (targetW - viewBoxSize * scale) / 2;
+          offsetY = targetY + (targetH - viewBoxSize * scale) / 2;
+        }
+        
+        const artStrokes = [];
+        
+        // Create guideline paths
+        const guideStrokeStrings = [
+          "M 390, 240 A 120,120 0 1,0 390,240.1", // Circle head guide
+          "M 140 240 L 400 240",                 // Horizontal axis guide
+          "M 270 110 L 270 370"                  // Vertical axis guide
+        ];
+        
+        // Detailed woman face portrait dataset
+        const portraitStrokes = [
+          // 1. Core Profile Outline (overlapping, sketchy lines) - Thick, dark
+          { d: "M 250 90 C 242 110, 235 125, 228 145", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Forehead upper
+          { d: "M 230 135 C 228 140, 229 143, 228 145", speed: 0.04, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Glabella notch
+          { d: "M 228 145 C 222 160, 212 180, 202 195", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Nose bridge upper
+          { d: "M 205 190 C 197 200, 190 203, 188 205", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Nose bridge lower to tip
+          { d: "M 188 205 C 187 208, 188 211, 192 213 C 196 215, 200 215, 203 213", speed: 0.04, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Nose tip under
+          { d: "M 198 213 C 194 213, 192 210, 195 207 C 199 204, 203 207, 203 212", speed: 0.04, width: 1.2, color: "rgba(229, 193, 88, 0.8)" }, // Nostril curve
+          { d: "M 201 213 C 202 218, 203 222, 204 230", speed: 0.035, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Philtrum
+          { d: "M 204 230 C 199 235, 198 238, 202 240 C 206 242, 210 241, 212 240", speed: 0.04, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Upper lip outer
+          { d: "M 202 240 C 206 241, 210 241, 214 242", speed: 0.04, width: 1.0, color: "rgba(229, 193, 88, 0.4)" }, // Mouth crease center
+          { d: "M 203 241 C 200 246, 202 252, 207 255 C 210 256, 213 254, 214 250", speed: 0.04, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Lower lip outer
+          { d: "M 207 255 C 209 260, 212 265, 215 272", speed: 0.035, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Chin groove
+          { d: "M 215 272 C 208 280, 204 286, 204 288 C 204 294, 212 301, 225 305", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Chin curve
+          { d: "M 225 305 C 245 295, 268 280, 285 255", speed: 0.025, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Jawline
+          { d: "M 230 310 C 228 335, 224 365, 220 400", speed: 0.03, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Neck front
+          { d: "M 300 320 C 305 345, 312 370, 320 400", speed: 0.03, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Neck back
 
-        header.addEventListener("mousemove", (e) => {
-          const rect = header.getBoundingClientRect();
-          points.push({
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
-            age: 0,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: (Math.random() - 0.5) * 0.4
+          // 2. Eye & Eyelids (detailed profile eye) - Medium weight
+          { d: "M 235 171 C 228 173, 221 176, 217 180", speed: 0.04, width: 1.3, color: "rgba(229, 193, 88, 0.85)" }, // Upper eyelid
+          { d: "M 217 180 C 223 182, 229 181, 234 178", speed: 0.04, width: 1.2, color: "rgba(229, 193, 88, 0.8)" }, // Lower eyelid
+          { d: "M 237 167 C 229 169, 222 172, 218 176", speed: 0.04, width: 1.0, color: "rgba(229, 193, 88, 0.6)" }, // Double lid crease
+          { d: "M 223 174 C 221 176, 221 178, 223 180 C 225 180, 226 178, 225 174 Z", speed: 0.04, width: 1.2, color: "rgba(229, 193, 88, 0.85)" }, // Iris and pupil
+
+          // 3. Eyebrow (flowing strokes following hair growth) - Fine, feathered
+          { d: "M 226 148 C 235 141, 245 138, 255 142", speed: 0.05, width: 1.4, color: "rgba(229, 193, 88, 0.8)" }, // Brow baseline 1
+          { d: "M 225 149 C 234 142, 244 139, 254 143", speed: 0.05, width: 1.2, color: "rgba(229, 193, 88, 0.7)" }, // Brow baseline 2
+          { d: "M 226 149 L 224 144", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 1
+          { d: "M 229 147 L 227 142", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 2
+          { d: "M 232 145 L 230 140", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 3
+          { d: "M 235 144 L 233 139", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 4
+          { d: "M 238 143 L 236 138", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 5
+          { d: "M 241 142 L 239 137", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 6
+          { d: "M 244 142 L 242 137", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 7
+          { d: "M 247 143 L 245 138", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 8
+          { d: "M 251 145 L 249 140", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 9
+          { d: "M 255 147 L 253 142", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 10
+
+          // 4. Eyelashes (sweeping curving lines) - Fine, quick
+          { d: "M 217 180 C 213 177, 209 173, 207 169", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 219 180 C 215 177, 211 173, 209 169", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 221 179 C 217 176, 213 172, 211 168", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 223 178 C 219 175, 215 171, 213 167", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 225 177 C 221 174, 217 170, 215 166", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+
+          // 5. Lip Shading and volume lines (fine vertical strokes) - Very light
+          { d: "M 209 238 L 207 241", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 212 239 L 210 242", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 215 240 L 213 243", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 210 246 L 211 251", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 213 247 L 215 253", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 216 248 L 218 254", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 219 248 L 221 254", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+
+          // 6. Cross-hatch shading shadows for 3D realism - Faint, fine
+          // Eye socket shadow
+          { d: "M 232 155 L 222 165", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 235 157 L 225 167", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 238 159 L 228 169", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 241 161 L 231 171", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 222 165 L 232 167", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 225 167 L 235 169", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 228 169 L 238 171", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          // Nose bridge side shadow
+          { d: "M 224 195 C 220 200, 216 208, 216 214", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 227 197 C 223 202, 219 210, 219 216", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 230 199 C 226 204, 222 212, 222 218", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          // Under jaw shadow (neck)
+          { d: "M 228 305 L 220 315", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 233 307 L 225 317", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 238 309 L 230 320", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 243 311 L 235 322", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 248 313 L 240 324", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+
+          // 7. Flowing Hair Strands (layered locks for volume) - Varied weights
+          // Crown and Back Hair (Main curves) - Thick, sweeping
+          { d: "M 250 90 C 280 60, 320 50, 360 65 C 390 80, 410 110, 420 150 C 430 190, 435 240, 430 290 C 425 340, 410 395, 385 430", speed: 0.025, width: 1.8, color: "rgba(229, 193, 88, 0.85)" },
+          { d: "M 255 85 C 285 55, 325 45, 365 60 C 395 75, 415 105, 425 145 C 435 185, 440 235, 435 285 C 430 335, 415 390, 390 425", speed: 0.025, width: 1.5, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 260 80 C 290 50, 330 40, 370 55 C 400 70, 420 100, 430 140 C 440 180, 445 230, 440 280 C 435 330, 420 385, 395 420", speed: 0.025, width: 1.2, color: "rgba(229, 193, 88, 0.75)" },
+          { d: "M 270 70 C 300 45, 340 35, 380 50 C 410 65, 430 95, 440 135 C 450 175, 455 225, 450 275 C 445 325, 430 380, 405 415", speed: 0.025, width: 1.0, color: "rgba(229, 193, 88, 0.65)" },
+          // Forehead / Side hair locks - Soft, medium
+          { d: "M 250 90 C 242 120, 238 155, 240 190 C 242 215, 250 240, 258 265 C 266 290, 268 315, 264 340 C 260 365, 248 390, 235 410", speed: 0.03, width: 1.5, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 255 95 C 247 125, 243 160, 245 195 C 247 220, 255 245, 263 270 C 271 295, 273 320, 269 345 C 265 370, 253 395, 240 415", speed: 0.03, width: 1.2, color: "rgba(229, 193, 88, 0.7)" },
+          { d: "M 260 100 C 252 130, 248 165, 250 200 C 252 225, 260 250, 268 275 C 276 300, 278 325, 274 350 C 270 375, 258 400, 245 420", speed: 0.03, width: 1.0, color: "rgba(229, 193, 88, 0.6)" },
+          // Middle hair volume locks - Fine, dense
+          { d: "M 280 110 C 275 145, 273 180, 277 215 C 281 240, 290 265, 295 290 C 300 315, 300 340, 293 365 C 287 390, 275 415, 260 435", speed: 0.03, width: 1.4, color: "rgba(229, 193, 88, 0.75)" },
+          { d: "M 285 115 C 280 150, 278 185, 282 220 C 286 245, 295 270, 300 295 C 305 320, 305 345, 298 370 C 292 395, 280 420, 265 440", speed: 0.03, width: 1.2, color: "rgba(229, 193, 88, 0.7)" },
+          { d: "M 290 120 C 285 155, 283 190, 287 225 C 291 250, 300 275, 305 300 C 310 325, 310 350, 303 375 C 297 400, 285 425, 270 445", speed: 0.03, width: 1.0, color: "rgba(229, 193, 88, 0.6)" },
+          { d: "M 300 130 C 295 165, 293 200, 297 235 C 301 260, 310 285, 315 310 C 320 335, 320 360, 313 385 C 307 410, 295 435, 280 455", speed: 0.03, width: 1.2, color: "rgba(229, 193, 88, 0.7)" },
+          { d: "M 310 140 C 305 175, 303 210, 307 245 C 311 270, 320 295, 325 320 C 330 345, 330 370, 323 395 C 317 420, 305 445, 290 465", speed: 0.03, width: 1.0, color: "rgba(229, 193, 88, 0.6)" }
+        ];
+        
+        // Temporary SVG document elements to sample points via browser native path length functions
+        const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        tempSvg.style.position = "absolute";
+        tempSvg.style.width = "0";
+        tempSvg.style.height = "0";
+        tempSvg.style.pointerEvents = "none";
+        document.body.appendChild(tempSvg);
+        
+        function samplePoints(dString, sampleSpacing = 2) {
+          const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          tempPath.setAttribute("d", dString);
+          tempSvg.appendChild(tempPath);
+          const totalLen = tempPath.getTotalLength();
+          const pts = [];
+          const steps = Math.max(15, Math.floor(totalLen / sampleSpacing));
+          for (let i = 0; i <= steps; i++) {
+            const dist = (i / steps) * totalLen;
+            const pt = tempPath.getPointAtLength(dist);
+            pts.push({ x: pt.x, y: pt.y });
+          }
+          tempSvg.removeChild(tempPath);
+          return pts;
+        }
+        
+        // Populate artStrokes from detailed woman portrait dataset
+        portraitStrokes.forEach(stroke => {
+          artStrokes.push({
+            points: samplePoints(stroke.d, 2.5),
+            color: stroke.color || "rgba(229, 193, 88, 0.9)",
+            width: stroke.width || 1.8,
+            progress: 0,
+            type: "art",
+            speed: stroke.speed
           });
         });
-
+        
+        // Path 2 (Outer circular loop) - Grey Art (Framing Circle)
+        if (svgPaths[1]) {
+          const dOuter = svgPaths[1].getAttribute("d");
+          artStrokes.unshift({
+            points: samplePoints(dOuter, 3),
+            color: "rgba(255, 255, 255, 0.22)",
+            width: 1.2,
+            progress: 0,
+            type: "outer-guide",
+            speed: 0.025
+          });
+        }
+        
+        // Guideline strokes (fading construction guides)
+        const guideStrokes = guideStrokeStrings.map(d => {
+          return {
+            points: samplePoints(d, 3),
+            color: "rgba(255, 255, 255, 0.08)",
+            width: 1.0,
+            progress: 0,
+            speed: 0.05
+          };
+        });
+        
+        // Remove temporary SVG
+        document.body.removeChild(tempSvg);
+        
+        // Resize canvas initially
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+        
+        // Animation States
+        let activeGuideIdx = 0;
+        let activeArtIdx = 0;
+        let guidesComplete = false;
+        let drawingFinished = false;
+        let guideOpacity = 1.0;
+        
+        let particles = [];
+        let interactivePoints = [];
+        
+        // Procedural pencil graphics tip renderer
+        function drawVirtualPencil(x, y) {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(-Math.PI / 6); // 30 degrees angle tilt
+          
+          // 1. Charcoal Lead tip
+          ctx.fillStyle = "#26262b";
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(2.5, -6);
+          ctx.lineTo(-2.5, -6);
+          ctx.closePath();
+          ctx.fill();
+          
+          // 2. Sharpened wood cone
+          ctx.fillStyle = "#dfbc95";
+          ctx.beginPath();
+          ctx.moveTo(2.5, -6);
+          ctx.lineTo(7.5, -20);
+          ctx.lineTo(-7.5, -20);
+          ctx.lineTo(-2.5, -6);
+          ctx.closePath();
+          ctx.fill();
+          
+          // Lead inner lead detail
+          ctx.fillStyle = "#26262b";
+          ctx.beginPath();
+          ctx.moveTo(1.0, -6);
+          ctx.lineTo(1.8, -9);
+          ctx.lineTo(-1.8, -9);
+          ctx.lineTo(-1.0, -6);
+          ctx.closePath();
+          ctx.fill();
+          
+          // 3. Hexagonal blue pencil body
+          ctx.fillStyle = "#1e528a"; // Classic blue lead pencil
+          ctx.beginPath();
+          ctx.moveTo(7.5, -20);
+          ctx.lineTo(7.5, -110);
+          ctx.lineTo(-7.5, -110);
+          ctx.lineTo(-7.5, -20);
+          ctx.closePath();
+          ctx.fill();
+          
+          // Facet shading on pencil body for 3D look
+          ctx.fillStyle = "#2d6eb3"; // Lighter blue facet
+          ctx.fillRect(-2.5, -110, 5, 90);
+          
+          // 4. Gold metal collar
+          ctx.fillStyle = "#d4af37";
+          ctx.fillRect(-7.5, -110, 15, 8);
+          
+          // 5. Pink eraser
+          ctx.fillStyle = "#e5939f";
+          ctx.beginPath();
+          ctx.moveTo(-7.5, -118);
+          ctx.lineTo(7.5, -118);
+          ctx.arc(0, -118, 7.5, Math.PI, 0, false);
+          ctx.closePath();
+          ctx.fill();
+          
+          ctx.restore();
+        }
+        
+        function drawTexturedStroke(strokePoints, color, width, drawProgress, opacity) {
+          if (strokePoints.length === 0) return;
+          const count = Math.ceil(strokePoints.length * drawProgress);
+          if (count < 2) return;
+          
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          
+          // 1. Draw main charcoal line
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.beginPath();
+          
+          let firstX = strokePoints[0].x * scaleX + offsetX;
+          let firstY = strokePoints[0].y * scaleY + offsetY;
+          ctx.moveTo(firstX, firstY);
+          
+          for (let i = 1; i < count; i++) {
+            let px = strokePoints[i].x * scaleX + offsetX;
+            let py = strokePoints[i].y * scaleY + offsetY;
+            ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          
+          // 2. Draw offset rough jitter stroke
+          ctx.strokeStyle = color.replace(/[\d.]+\)$/, "0.15)");
+          ctx.lineWidth = width * 0.7;
+          ctx.beginPath();
+          
+          let jitFirstX = firstX + (Math.random() - 0.5) * 1.0;
+          let jitFirstY = firstY + (Math.random() - 0.5) * 1.0;
+          ctx.moveTo(jitFirstX, jitFirstY);
+          
+          for (let i = 1; i < count; i++) {
+            let px = strokePoints[i].x * scaleX + offsetX + (Math.random() - 0.5) * 1.0;
+            let py = strokePoints[i].y * scaleY + offsetY + (Math.random() - 0.5) * 1.0;
+            ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          
+          // 3. Draw tiny graphite dust texture specks
+          ctx.fillStyle = color;
+          for (let i = 0; i < count; i += 5) {
+            if (Math.random() < 0.2) {
+              let px = strokePoints[i].x * scaleX + offsetX + (Math.random() - 0.5) * 3;
+              let py = strokePoints[i].y * scaleY + offsetY + (Math.random() - 0.5) * 3;
+              ctx.beginPath();
+              ctx.arc(px, py, 0.4 + Math.random() * 0.4, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+          
+          ctx.restore();
+        }
+        
         function animate() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           
-          for (let i = 1; i < points.length; i++) {
-            const p1 = points[i-1];
-            const p2 = points[i];
-            const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-            
-            if (dist < 70) {
-              const alpha = (1 - p2.age / maxPoints) * 0.22;
-              ctx.strokeStyle = `rgba(229, 193, 88, ${alpha})`;
-              ctx.lineWidth = (1 - p2.age / maxPoints) * 2.2;
-              ctx.lineCap = "round";
-              ctx.lineJoin = "round";
-              ctx.beginPath();
-              ctx.moveTo(p1.x, p1.y);
-              ctx.lineTo(p2.x, p2.y);
-              ctx.stroke();
+          // 1. Draw construction guides (fade them out gradually once art starts)
+          if (guideOpacity > 0.01) {
+            guideStrokes.forEach(stroke => {
+              drawTexturedStroke(stroke.points, stroke.color, stroke.width, stroke.progress, guideOpacity);
+            });
+          }
+          
+          // 2. Draw completed art strokes
+          for (let i = 0; i < activeArtIdx; i++) {
+            const stroke = artStrokes[i];
+            drawTexturedStroke(stroke.points, stroke.color, stroke.width, 1.0, 1.0);
+          }
+          
+          // 3. Draw current active stroke and determine pencil tip position
+          let headX = 0;
+          let headY = 0;
+          let activeArtStroke = null;
+          
+          // A. Draw guide lines first
+          if (!guidesComplete) {
+            const activeGuide = guideStrokes[activeGuideIdx];
+            if (activeGuide) {
+              activeGuide.progress += activeGuide.speed;
+              
+              // Get tip coordinate
+              const points = activeGuide.points;
+              const currentPointIdx = Math.min(
+                Math.floor(points.length * activeGuide.progress),
+                points.length - 1
+              );
+              if (points[currentPointIdx]) {
+                headX = points[currentPointIdx].x * scaleX + offsetX;
+                headY = points[currentPointIdx].y * scaleY + offsetY;
+              }
+              
+              if (activeGuide.progress >= 1.0) {
+                activeGuide.progress = 1.0;
+                activeGuideIdx++;
+                if (activeGuideIdx >= guideStrokes.length) {
+                  guidesComplete = true;
+                }
+              }
             }
           }
-
-          points.forEach(p => {
+          // B. Draw main art portrait strokes next
+          else if (!drawingFinished) {
+            activeArtStroke = artStrokes[activeArtIdx];
+            if (activeArtStroke) {
+              // Fade guides as art progresses
+              if (guideOpacity > 0) {
+                guideOpacity -= 0.005;
+                if (guideOpacity < 0) guideOpacity = 0;
+              }
+              
+              drawTexturedStroke(activeArtStroke.points, activeArtStroke.color, activeArtStroke.width, activeArtStroke.progress, 1.0);
+              
+              // Get current pencil tip coordinates
+              const points = activeArtStroke.points;
+              const currentPointIdx = Math.min(
+                Math.floor(points.length * activeArtStroke.progress),
+                points.length - 1
+              );
+              
+              if (points[currentPointIdx]) {
+                headX = points[currentPointIdx].x * scaleX + offsetX;
+                headY = points[currentPointIdx].y * scaleY + offsetY;
+              }
+              
+              // Increment progress
+              activeArtStroke.progress += activeArtStroke.speed;
+              if (activeArtStroke.progress >= 1.0) {
+                activeArtStroke.progress = 1.0;
+                activeArtIdx++;
+                if (activeArtIdx >= artStrokes.length) {
+                  drawingFinished = true;
+                }
+              }
+            }
+          }
+          
+          // Draw final static drawing once completed
+          if (drawingFinished) {
+            if (guideOpacity > 0) guideOpacity = 0;
+            const lastStroke = artStrokes[artStrokes.length - 1];
+            if (lastStroke) {
+              drawTexturedStroke(lastStroke.points, lastStroke.color, lastStroke.width, 1.0, 1.0);
+            }
+          }
+          
+          // 4. Update and draw particles (graphite dust / sparks)
+          if (headX && headY) {
+            // Spawn drawing tip particles
+            if (Math.random() < 0.6) {
+              particles.push({
+                x: headX,
+                y: headY,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: Math.random() * 0.8 + 0.4,
+                life: 1.0,
+                decay: 0.015 + Math.random() * 0.02,
+                size: Math.random() * 1.6 + 0.4,
+                color: Math.random() > 0.4 ? "rgba(229, 193, 88, 0.8)" : "rgba(255, 255, 255, 0.3)"
+              });
+            }
+            
+            // Draw pencil glow pointer
+            ctx.save();
+            const glowGrad = ctx.createRadialGradient(headX, headY, 0, headX, headY, 10);
+            glowGrad.addColorStop(0, "rgba(255, 255, 255, 1)");
+            glowGrad.addColorStop(0.2, "rgba(229, 193, 88, 0.9)");
+            glowGrad.addColorStop(0.6, "rgba(229, 193, 88, 0.25)");
+            glowGrad.addColorStop(1, "rgba(229, 193, 88, 0)");
+            ctx.fillStyle = glowGrad;
+            ctx.beginPath();
+            ctx.arc(headX, headY, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Draw physical pencil cursor tracing lines
+            drawVirtualPencil(headX, headY);
+          }
+          
+          // Render graphite dust particles
+          particles.forEach(p => {
             p.x += p.vx;
             p.y += p.vy;
-            p.age++;
+            p.life -= p.decay;
+            
+            ctx.save();
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
           });
-          points = points.filter(p => p.age < maxPoints);
-
+          particles = particles.filter(p => p.life > 0);
+          
+          // 5. Draw interactive mouse-charcoal trails
+          if (drawingFinished) {
+            for (let i = 1; i < interactivePoints.length; i++) {
+              const p1 = interactivePoints[i-1];
+              const p2 = interactivePoints[i];
+              const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+              if (dist < 80) {
+                const avgLife = (p1.life + p2.life) / 2;
+                ctx.save();
+                ctx.globalAlpha = avgLife * 0.22;
+                ctx.strokeStyle = "rgba(229, 193, 88, 0.9)";
+                ctx.lineWidth = avgLife * 2.5;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+                
+                // Extra charcoal offsets
+                ctx.strokeStyle = "rgba(229, 193, 88, 0.05)";
+                ctx.lineWidth = avgLife * 1.2;
+                ctx.beginPath();
+                ctx.moveTo(p1.x + (Math.random() - 0.5) * 1.5, p1.y + (Math.random() - 0.5) * 1.5);
+                ctx.lineTo(p2.x + (Math.random() - 0.5) * 1.5, p2.y + (Math.random() - 0.5) * 1.5);
+                ctx.stroke();
+                ctx.restore();
+              }
+            }
+            
+            interactivePoints.forEach(p => {
+              p.x += p.vx;
+              p.y += p.vy;
+              p.life -= 0.015;
+            });
+            interactivePoints = interactivePoints.filter(p => p.life > 0);
+          }
+          
           requestAnimationFrame(animate);
         }
+        
+        // Interactive Mouse Handlers
+        header.addEventListener("mousemove", (e) => {
+          if (!drawingFinished) return;
+          const rect = header.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          interactivePoints.push({
+            x: mouseX,
+            y: mouseY,
+            life: 1.0,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.4
+          });
+          
+          if (Math.random() < 0.4) {
+            particles.push({
+              x: mouseX,
+              y: mouseY,
+              vx: (Math.random() - 0.5) * 1.8,
+              vy: (Math.random() - 0.5) * 1.8,
+              life: 1.0,
+              decay: 0.02 + Math.random() * 0.02,
+              size: Math.random() * 1.5 + 0.4,
+              color: "rgba(229, 193, 88, 0.85)"
+            });
+          }
+        });
+        
+        header.addEventListener("touchmove", (e) => {
+          if (!drawingFinished) return;
+          const rect = header.getBoundingClientRect();
+          const touch = e.touches[0];
+          const touchX = touch.clientX - rect.left;
+          const touchY = touch.clientY - rect.top;
+          
+          interactivePoints.push({
+            x: touchX,
+            y: touchY,
+            life: 1.0,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.4
+          });
+          
+          if (Math.random() < 0.4) {
+            particles.push({
+              x: touchX,
+              y: touchY,
+              vx: (Math.random() - 0.5) * 1.8,
+              vy: (Math.random() - 0.5) * 1.8,
+              life: 1.0,
+              decay: 0.02 + Math.random() * 0.02,
+              size: Math.random() * 1.5 + 0.4,
+              color: "rgba(229, 193, 88, 0.85)"
+            });
+          }
+        }, { passive: true });
+        
         animate();
       }
 
@@ -1766,7 +2286,7 @@
       <div class="hero-art">
         <!-- Self-drawing line art face sketch -->
         <svg class="hero-line-art" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M120 380 C 130 350, 160 300, 190 280 C 220 260, 240 280, 250 290 C 270 310, 280 340, 270 370 C 260 400, 240 430, 230 450 M190 280 C 170 240, 180 180, 210 150 C 240 120, 280 110, 310 130 C 350 150, 370 200, 360 250 C 350 290, 310 330, 270 350 C 250 360, 230 380, 220 400 M310 130 C 330 110, 360 100, 380 120 C 400 140, 400 170, 380 190 C 360 210, 330 220, 310 230 M210 150 C 200 170, 180 200, 180 220 C 180 245, 195 250, 210 250 C 230 250, 250 235, 270 235 C 290 235, 310 250, 330 250 C 350 250, 360 230, 360 210 M230 195 C 240 190, 255 190, 265 195 C 255 200, 240 200, 230 195 Z M305 195 C 315 190, 330 190, 340 195 C 330 200, 315 200, 305 195 Z M255 285 C 270 275, 285 275, 300 285 C 285 295, 270 295, 255 285 Z" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="draw-path"/>
+          <path d="M 250 90 C 242 110, 235 125, 228 145 M 228 145 C 222 160, 212 180, 202 195 M 205 190 C 197 200, 190 203, 188 205 M 188 205 C 187 208, 188 211, 192 213 C 196 215, 200 215, 203 213 M 198 213 C 194 213, 192 210, 195 207 C 199 204, 203 207, 203 212 M 201 213 C 202 218, 203 222, 204 230 M 204 230 C 199 235, 198 238, 202 240 C 206 242, 210 241, 212 240 M 203 241 C 200 246, 202 252, 207 255 C 210 256, 213 254, 214 250 M 207 255 C 209 260, 212 265, 215 272 M 215 272 C 208 280, 204 286, 204 288 C 204 294, 212 301, 225 305 M 225 305 C 245 295, 268 280, 285 255 M 230 310 C 228 335, 224 365, 220 400" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="draw-path"/>
           <path d="M80 250 C 120 180, 220 80, 320 80 C 420 80, 450 180, 430 260 C 410 340, 320 420, 220 440" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" stroke-dasharray="8 8" stroke-linecap="round" class="draw-path"/>
         </svg>
       </div>

@@ -1427,89 +1427,95 @@
         
         // Detailed woman face portrait dataset
         const portraitStrokes = [
-          // 1. Core Profile Outline (forehead, nose, lips, chin, neck)
-          { d: "M 290 60 C 275 80, 260 110, 255 130", speed: 0.035 },
-          { d: "M 255 130 C 250 150, 240 180, 232 205", speed: 0.035 },
-          { d: "M 232 205 C 228 220, 218 240, 208 255 C 205 260, 207 265, 212 267 C 218 269, 228 271, 235 273", speed: 0.035 },
-          // Lips and mouth
-          { d: "M 235 273 C 242 275, 243 282, 238 286 C 232 292, 222 305, 216 312 C 213 316, 216 320, 224 322", speed: 0.035 },
-          { d: "M 224 322 C 234 325, 242 328, 245 332 C 248 336, 238 342, 232 348 C 226 354, 224 358, 225 362", speed: 0.035 },
-          { d: "M 225 362 C 228 368, 235 378, 245 382 C 252 385, 255 392, 253 398 C 250 406, 242 422, 238 432 C 236 437, 244 442, 252 446", speed: 0.035 },
-          
-          // 2. Eye & Eyelid
-          { d: "M 265 178 C 260 182, 252 188, 248 195", speed: 0.05 }, // Upper lid
-          { d: "M 248 195 C 254 198, 262 201, 268 202", speed: 0.05 }, // Lower lid
-          { d: "M 255 190 C 252 195, 252 198, 256 201", speed: 0.05 }, // Iris/pupil outline
-          { d: "M 262 172 C 255 178, 248 184, 245 192", speed: 0.05 }, // Eye crease
-          
-          // 3. Eyebrow (hatching pencil strokes)
-          { d: "M 252 145 C 258 142, 268 138, 278 140", speed: 0.07 },
-          { d: "M 250 148 C 256 145, 266 141, 276 142", speed: 0.07 },
-          { d: "M 248 152 C 254 148, 264 144, 274 145", speed: 0.07 },
-          { d: "M 246 156 C 252 152, 262 148, 272 149", speed: 0.07 },
-          // Eyebrow hairs (rapid strokes)
-          { d: "M 248 154 L 246 148", speed: 0.15 },
-          { d: "M 250 152 L 249 146", speed: 0.15 },
-          { d: "M 252 150 L 251 144", speed: 0.15 },
-          { d: "M 254 148 L 253 142", speed: 0.15 },
-          { d: "M 257 146 L 256 140", speed: 0.15 },
-          { d: "M 260 145 L 259 139", speed: 0.15 },
-          { d: "M 264 144 L 263 138", speed: 0.15 },
-          { d: "M 268 144 L 267 138", speed: 0.15 },
-          { d: "M 272 145 L 271 139", speed: 0.15 },
-          { d: "M 276 147 L 275 141", speed: 0.15 },
-          
-          // Eyelashes
-          { d: "M 248 195 C 243 194, 238 190, 236 186", speed: 0.15 },
-          { d: "M 250 196 C 245 195, 240 191, 238 187", speed: 0.15 },
-          { d: "M 252 197 C 247 196, 242 192, 240 188", speed: 0.15 },
-          { d: "M 255 198 C 250 197, 246 193, 244 189", speed: 0.15 },
-          { d: "M 258 199 C 254 198, 250 195, 248 191", speed: 0.15 },
-          { d: "M 262 200 C 258 199, 254 196, 252 192", speed: 0.15 },
-          
-          // 4. Detailed Lip Shading (vertical pencil strokes)
-          { d: "M 230 294 L 226 304", speed: 0.12 },
-          { d: "M 232 296 L 228 306", speed: 0.12 },
-          { d: "M 234 298 L 230 308", speed: 0.12 },
-          { d: "M 236 300 L 232 310", speed: 0.12 },
-          { d: "M 238 302 L 234 312", speed: 0.12 },
-          { d: "M 240 304 L 236 314", speed: 0.12 },
-          // Upper lip edge
-          { d: "M 220 315 C 228 317, 236 318, 242 318", speed: 0.05 },
-          // Lower Lip Shading
-          { d: "M 226 324 L 228 334", speed: 0.12 },
-          { d: "M 228 325 L 230 336", speed: 0.12 },
-          { d: "M 230 326 L 232 338", speed: 0.12 },
-          { d: "M 232 327 L 234 340", speed: 0.12 },
-          { d: "M 234 328 L 236 342", speed: 0.12 },
-          { d: "M 236 329 L 238 343", speed: 0.12 },
-          { d: "M 238 330 L 240 344", speed: 0.12 },
-          
-          // 5. Hair Strands (flowing right)
-          { d: "M 268 40 C 275 80, 290 120, 310 160 C 330 200, 340 250, 345 300 C 350 350, 340 400, 325 440", speed: 0.03 },
-          { d: "M 275 35 C 285 75, 305 115, 325 155 C 345 195, 355 245, 358 295 C 361 345, 350 395, 332 435", speed: 0.035 },
-          { d: "M 285 30 C 298 70, 320 110, 340 150 C 360 190, 370 240, 372 290 C 374 340, 362 390, 340 430", speed: 0.03 },
-          // Forehead strands
-          { d: "M 280 40 C 270 50, 260 70, 252 90 C 248 100, 248 105, 252 112 C 256 120, 264 130, 272 140", speed: 0.04 },
-          { d: "M 290 35 C 280 48, 270 68, 262 88 C 258 98, 258 103, 262 110 C 266 118, 274 128, 282 138", speed: 0.04 },
-          // Side locks
-          { d: "M 305 150 C 295 180, 288 210, 292 240 C 295 260, 302 280, 308 300 C 314 320, 318 340, 312 360 C 306 380, 292 400, 280 420", speed: 0.035 },
-          { d: "M 315 145 C 305 175, 298 205, 302 235 C 305 255, 312 275, 318 295 C 324 315, 328 335, 322 355 C 316 375, 302 395, 290 415", speed: 0.035 },
-          
-          // 6. Cross-Hatch shading shadows
-          { d: "M 252 165 L 244 175", speed: 0.12 },
-          { d: "M 255 167 L 247 177", speed: 0.12 },
-          { d: "M 258 169 L 250 179", speed: 0.12 },
-          { d: "M 261 171 L 253 181", speed: 0.12 },
-          
-          { d: "M 244 175 L 252 177", speed: 0.12 },
-          { d: "M 247 177 L 255 179", speed: 0.12 },
-          { d: "M 250 179 L 258 181", speed: 0.12 },
-          
-          // Nose side shadow
-          { d: "M 245 220 C 242 225, 238 235, 238 245", speed: 0.12 },
-          { d: "M 248 222 C 245 227, 241 237, 241 247", speed: 0.12 },
-          { d: "M 251 224 C 248 229, 244 239, 244 249", speed: 0.12 }
+          // 1. Core Profile Outline (overlapping, sketchy lines) - Thick, dark
+          { d: "M 250 90 C 242 110, 235 125, 228 145", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Forehead upper
+          { d: "M 230 135 C 228 140, 229 143, 228 145", speed: 0.04, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Glabella notch
+          { d: "M 228 145 C 222 160, 212 180, 202 195", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Nose bridge upper
+          { d: "M 205 190 C 197 200, 190 203, 188 205", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Nose bridge lower to tip
+          { d: "M 188 205 C 187 208, 188 211, 192 213 C 196 215, 200 215, 203 213", speed: 0.04, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Nose tip under
+          { d: "M 198 213 C 194 213, 192 210, 195 207 C 199 204, 203 207, 203 212", speed: 0.04, width: 1.2, color: "rgba(229, 193, 88, 0.8)" }, // Nostril curve
+          { d: "M 201 213 C 202 218, 203 222, 204 230", speed: 0.035, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Philtrum
+          { d: "M 204 230 C 199 235, 198 238, 202 240 C 206 242, 210 241, 212 240", speed: 0.04, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Upper lip outer
+          { d: "M 202 240 C 206 241, 210 241, 214 242", speed: 0.04, width: 1.0, color: "rgba(229, 193, 88, 0.4)" }, // Mouth crease center
+          { d: "M 203 241 C 200 246, 202 252, 207 255 C 210 256, 213 254, 214 250", speed: 0.04, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Lower lip outer
+          { d: "M 207 255 C 209 260, 212 265, 215 272", speed: 0.035, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Chin groove
+          { d: "M 215 272 C 208 280, 204 286, 204 288 C 204 294, 212 301, 225 305", speed: 0.03, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Chin curve
+          { d: "M 225 305 C 245 295, 268 280, 285 255", speed: 0.025, width: 2.0, color: "rgba(229, 193, 88, 0.95)" }, // Jawline
+          { d: "M 230 310 C 228 335, 224 365, 220 400", speed: 0.03, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Neck front
+          { d: "M 300 320 C 305 345, 312 370, 320 400", speed: 0.03, width: 1.8, color: "rgba(229, 193, 88, 0.9)" }, // Neck back
+
+          // 2. Eye & Eyelids (detailed profile eye) - Medium weight
+          { d: "M 235 171 C 228 173, 221 176, 217 180", speed: 0.04, width: 1.3, color: "rgba(229, 193, 88, 0.85)" }, // Upper eyelid
+          { d: "M 217 180 C 223 182, 229 181, 234 178", speed: 0.04, width: 1.2, color: "rgba(229, 193, 88, 0.8)" }, // Lower eyelid
+          { d: "M 237 167 C 229 169, 222 172, 218 176", speed: 0.04, width: 1.0, color: "rgba(229, 193, 88, 0.6)" }, // Double lid crease
+          { d: "M 223 174 C 221 176, 221 178, 223 180 C 225 180, 226 178, 225 174 Z", speed: 0.04, width: 1.2, color: "rgba(229, 193, 88, 0.85)" }, // Iris and pupil
+
+          // 3. Eyebrow (flowing strokes following hair growth) - Fine, feathered
+          { d: "M 226 148 C 235 141, 245 138, 255 142", speed: 0.05, width: 1.4, color: "rgba(229, 193, 88, 0.8)" }, // Brow baseline 1
+          { d: "M 225 149 C 234 142, 244 139, 254 143", speed: 0.05, width: 1.2, color: "rgba(229, 193, 88, 0.7)" }, // Brow baseline 2
+          { d: "M 226 149 L 224 144", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 1
+          { d: "M 229 147 L 227 142", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 2
+          { d: "M 232 145 L 230 140", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 3
+          { d: "M 235 144 L 233 139", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 4
+          { d: "M 238 143 L 236 138", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 5
+          { d: "M 241 142 L 239 137", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 6
+          { d: "M 244 142 L 242 137", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 7
+          { d: "M 247 143 L 245 138", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 8
+          { d: "M 251 145 L 249 140", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 9
+          { d: "M 255 147 L 253 142", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.7)" }, // Brow hair 10
+
+          // 4. Eyelashes (sweeping curving lines) - Fine, quick
+          { d: "M 217 180 C 213 177, 209 173, 207 169", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 219 180 C 215 177, 211 173, 209 169", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 221 179 C 217 176, 213 172, 211 168", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 223 178 C 219 175, 215 171, 213 167", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 225 177 C 221 174, 217 170, 215 166", speed: 0.12, width: 1.0, color: "rgba(229, 193, 88, 0.8)" },
+
+          // 5. Lip Shading and volume lines (fine vertical strokes) - Very light
+          { d: "M 209 238 L 207 241", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 212 239 L 210 242", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 215 240 L 213 243", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 210 246 L 211 251", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 213 247 L 215 253", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 216 248 L 218 254", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 219 248 L 221 254", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+
+          // 6. Cross-hatch shading shadows for 3D realism - Faint, fine
+          // Eye socket shadow
+          { d: "M 232 155 L 222 165", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 235 157 L 225 167", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 238 159 L 228 169", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 241 161 L 231 171", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 222 165 L 232 167", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 225 167 L 235 169", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 228 169 L 238 171", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          // Nose bridge side shadow
+          { d: "M 224 195 C 220 200, 216 208, 216 214", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 227 197 C 223 202, 219 210, 219 216", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          { d: "M 230 199 C 226 204, 222 212, 222 218", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.35)" },
+          // Under jaw shadow (neck)
+          { d: "M 228 305 L 220 315", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 233 307 L 225 317", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 238 309 L 230 320", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 243 311 L 235 322", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+          { d: "M 248 313 L 240 324", speed: 0.1, width: 0.8, color: "rgba(229, 193, 88, 0.3)" },
+
+          // 7. Flowing Hair Strands (layered locks for volume) - Varied weights
+          // Crown and Back Hair (Main curves) - Thick, sweeping
+          { d: "M 250 90 C 280 60, 320 50, 360 65 C 390 80, 410 110, 420 150 C 430 190, 435 240, 430 290 C 425 340, 410 395, 385 430", speed: 0.025, width: 1.8, color: "rgba(229, 193, 88, 0.85)" },
+          { d: "M 255 85 C 285 55, 325 45, 365 60 C 395 75, 415 105, 425 145 C 435 185, 440 235, 435 285 C 430 335, 415 390, 390 425", speed: 0.025, width: 1.5, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 260 80 C 290 50, 330 40, 370 55 C 400 70, 420 100, 430 140 C 440 180, 445 230, 440 280 C 435 330, 420 385, 395 420", speed: 0.025, width: 1.2, color: "rgba(229, 193, 88, 0.75)" },
+          { d: "M 270 70 C 300 45, 340 35, 380 50 C 410 65, 430 95, 440 135 C 450 175, 455 225, 450 275 C 445 325, 430 380, 405 415", speed: 0.025, width: 1.0, color: "rgba(229, 193, 88, 0.65)" },
+          // Forehead / Side hair locks - Soft, medium
+          { d: "M 250 90 C 242 120, 238 155, 240 190 C 242 215, 250 240, 258 265 C 266 290, 268 315, 264 340 C 260 365, 248 390, 235 410", speed: 0.03, width: 1.5, color: "rgba(229, 193, 88, 0.8)" },
+          { d: "M 255 95 C 247 125, 243 160, 245 195 C 247 220, 255 245, 263 270 C 271 295, 273 320, 269 345 C 265 370, 253 395, 240 415", speed: 0.03, width: 1.2, color: "rgba(229, 193, 88, 0.7)" },
+          { d: "M 260 100 C 252 130, 248 165, 250 200 C 252 225, 260 250, 268 275 C 276 300, 278 325, 274 350 C 270 375, 258 400, 245 420", speed: 0.03, width: 1.0, color: "rgba(229, 193, 88, 0.6)" },
+          // Middle hair volume locks - Fine, dense
+          { d: "M 280 110 C 275 145, 273 180, 277 215 C 281 240, 290 265, 295 290 C 300 315, 300 340, 293 365 C 287 390, 275 415, 260 435", speed: 0.03, width: 1.4, color: "rgba(229, 193, 88, 0.75)" },
+          { d: "M 285 115 C 280 150, 278 185, 282 220 C 286 245, 295 270, 300 295 C 305 320, 305 345, 298 370 C 292 395, 280 420, 265 440", speed: 0.03, width: 1.2, color: "rgba(229, 193, 88, 0.7)" },
+          { d: "M 290 120 C 285 155, 283 190, 287 225 C 291 250, 300 275, 305 300 C 310 325, 310 350, 303 375 C 297 400, 285 425, 270 445", speed: 0.03, width: 1.0, color: "rgba(229, 193, 88, 0.6)" },
+          { d: "M 300 130 C 295 165, 293 200, 297 235 C 301 260, 310 285, 315 310 C 320 335, 320 360, 313 385 C 307 410, 295 435, 280 455", speed: 0.03, width: 1.2, color: "rgba(229, 193, 88, 0.7)" },
+          { d: "M 310 140 C 305 175, 303 210, 307 245 C 311 270, 320 295, 325 320 C 330 345, 330 370, 323 395 C 317 420, 305 445, 290 465", speed: 0.03, width: 1.0, color: "rgba(229, 193, 88, 0.6)" }
         ];
         
         // Temporary SVG document elements to sample points via browser native path length functions
@@ -1540,8 +1546,8 @@
         portraitStrokes.forEach(stroke => {
           artStrokes.push({
             points: samplePoints(stroke.d, 2.5),
-            color: "rgba(229, 193, 88, 0.9)",
-            width: 1.8,
+            color: stroke.color || "rgba(229, 193, 88, 0.9)",
+            width: stroke.width || 1.8,
             progress: 0,
             type: "art",
             speed: stroke.speed
@@ -2288,7 +2294,7 @@
       <div class="hero-art">
         <!-- Self-drawing line art face sketch -->
         <svg class="hero-line-art" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M120 380 C 130 350, 160 300, 190 280 C 220 260, 240 280, 250 290 C 270 310, 280 340, 270 370 C 260 400, 240 430, 230 450 M190 280 C 170 240, 180 180, 210 150 C 240 120, 280 110, 310 130 C 350 150, 370 200, 360 250 C 350 290, 310 330, 270 350 C 250 360, 230 380, 220 400 M310 130 C 330 110, 360 100, 380 120 C 400 140, 400 170, 380 190 C 360 210, 330 220, 310 230 M210 150 C 200 170, 180 200, 180 220 C 180 245, 195 250, 210 250 C 230 250, 250 235, 270 235 C 290 235, 310 250, 330 250 C 350 250, 360 230, 360 210 M230 195 C 240 190, 255 190, 265 195 C 255 200, 240 200, 230 195 Z M305 195 C 315 190, 330 190, 340 195 C 330 200, 315 200, 305 195 Z M255 285 C 270 275, 285 275, 300 285 C 285 295, 270 295, 255 285 Z" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="draw-path"/>
+          <path d="M 250 90 C 242 110, 235 125, 228 145 M 228 145 C 222 160, 212 180, 202 195 M 205 190 C 197 200, 190 203, 188 205 M 188 205 C 187 208, 188 211, 192 213 C 196 215, 200 215, 203 213 M 198 213 C 194 213, 192 210, 195 207 C 199 204, 203 207, 203 212 M 201 213 C 202 218, 203 222, 204 230 M 204 230 C 199 235, 198 238, 202 240 C 206 242, 210 241, 212 240 M 203 241 C 200 246, 202 252, 207 255 C 210 256, 213 254, 214 250 M 207 255 C 209 260, 212 265, 215 272 M 215 272 C 208 280, 204 286, 204 288 C 204 294, 212 301, 225 305 M 225 305 C 245 295, 268 280, 285 255 M 230 310 C 228 335, 224 365, 220 400" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="draw-path"/>
           <path d="M80 250 C 120 180, 220 80, 320 80 C 420 80, 450 180, 430 260 C 410 340, 320 420, 220 440" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" stroke-dasharray="8 8" stroke-linecap="round" class="draw-path"/>
         </svg>
       </div>
